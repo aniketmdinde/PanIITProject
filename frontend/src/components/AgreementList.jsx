@@ -1,97 +1,60 @@
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, Calendar, AlertTriangle } from 'lucide-react';
-import { format } from 'date-fns';
+import { useGetAllAgreementsQuery } from '../store/services/agreementApi';
+import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { DocumentIcon, PlusIcon } from '@heroicons/react/24/outline';
 
-export function AgreementList() {
-  const { type } = useParams();
-  const navigate = useNavigate();
+export default function AgreementList() {
+  const { data: agreements, isLoading, error } = useGetAllAgreementsQuery();
+  const darkMode = useSelector((state) => state.theme.darkMode);
 
-  // Sample data - replace with real data from backend
-  const agreements = [
-    {
-      id: '1',
-      title: 'Service Level Agreement - Cloud Services',
-      status: 'active',
-      riskLevel: 'low',
-      lastModified: new Date(),
-      expirationDate: new Date(2024, 11, 31),
-      parties: ['Cloud Provider Inc.', 'Our Company'],
-      type: 'Service Agreement'
-    },
-    {
-      id: '2',
-      title: 'Non-Disclosure Agreement - Project X',
-      status: 'active',
-      riskLevel: 'medium',
-      lastModified: new Date(),
-      expirationDate: new Date(2024, 6, 15),
-      parties: ['Partner Company', 'Our Company'],
-      type: 'NDA'
-    }
-  ];
-
-  const filteredAgreements = agreements.filter(agreement => {
-    switch(type) {
-      case 'active':
-        return agreement.status === 'active';
-      case 'expiring':
-        const daysUntilExpiration = Math.ceil(
-          (new Date(agreement.expirationDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-        );
-        return daysUntilExpiration <= 30 && daysUntilExpiration > 0;
-      case 'high-risk':
-        return agreement.riskLevel === 'high';
-      default:
-        return true;
-    }
-  });
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">
-        {type?.charAt(0).toUpperCase() + type?.slice(1)} Agreements
-      </h2>
-      
-      <div className="grid gap-6">
-        {filteredAgreements.map((agreement) => (
-          <div
-            key={agreement.id}
-            className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer"
-            onClick={() => navigate(`/agreement/${agreement.id}`)}
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+          Agreements
+        </h1>
+        <Link
+          to="/create"
+          className={`inline-flex items-center px-4 py-2 rounded-md ${
+            darkMode
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-blue-500 hover:bg-blue-600 text-white'
+          }`}
+        >
+          <PlusIcon className="h-5 w-5 mr-2" />
+          New Agreement
+        </Link>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {agreements?.data.map((agreement) => (
+          <Link
+            key={agreement._id}
+            to={`/view/${agreement._id}`}
+            className={`p-4 rounded-lg ${
+              darkMode
+                ? 'bg-gray-800 hover:bg-gray-700'
+                : 'bg-white hover:bg-gray-50'
+            } shadow transition-colors duration-200`}
           >
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold text-gray-900">{agreement.title}</h3>
-                <div className="flex items-center space-x-4 text-sm text-gray-500">
-                  <span className="flex items-center">
-                    <FileText className="w-4 h-4 mr-1" />
-                    {agreement.type}
-                  </span>
-                  <span className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-1" />
-                    Expires: {format(agreement.expirationDate, 'MMM d, yyyy')}
-                  </span>
-                  {agreement.riskLevel === 'high' && (
-                    <span className="flex items-center text-red-500">
-                      <AlertTriangle className="w-4 h-4 mr-1" />
-                      High Risk
-                    </span>
-                  )}
-                </div>
-                <div className="text-sm text-gray-600">
-                  Parties: {agreement.parties.join(', ')}
-                </div>
+            <div className="flex items-start space-x-4">
+              <DocumentIcon className="h-6 w-6 text-blue-500" />
+              <div>
+                <h2 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {agreement.agreement_company}
+                </h2>
+                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Type: {agreement.type}
+                </p>
+                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Updated: {new Date(agreement.updatedAt).toLocaleDateString()}
+                </p>
               </div>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                agreement.status === 'active' ? 'bg-green-100 text-green-800' :
-                agreement.status === 'expired' ? 'bg-red-100 text-red-800' :
-                'bg-yellow-100 text-yellow-800'
-              }`}>
-                {agreement.status.charAt(0).toUpperCase() + agreement.status.slice(1)}
-              </span>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

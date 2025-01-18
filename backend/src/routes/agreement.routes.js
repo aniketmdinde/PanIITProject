@@ -14,7 +14,7 @@ router.route("/agreements").post(
     createAgreement
 )
 
-router.route("/agreements").get(getAgreement)
+router.route('/agreements').get(getAgreement);
 
 router.route("/agreements/all").get(getAllAgreements)
 

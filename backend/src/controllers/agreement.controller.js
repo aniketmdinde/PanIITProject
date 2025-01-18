@@ -66,26 +66,26 @@ export const getAllAgreements = async (req, res) => {
 
 export const getAgreement = async (req, res) => {
     try {
-        const {id} = req.body;
-
-        if(!id) {
-            throw new ApiError(400, "Invalid id");
-        }
-
-        const agreement = await Agreement.findById({_id:id})
-
-        return res.status(200).json(
-            new ApiResponse(200, agreement, "Agreement found!")
-        );
-
+      const { id } = req.query; // Extract id from query parameters
+  
+      if (!id) {
+        throw new ApiError(400, 'Invalid id');
+      }
+  
+      const agreement = await Agreement.findById({ _id: id });
+  
+      return res.status(200).json(
+        new ApiResponse(200, agreement, 'Agreement found!')
+      );
     } catch (error) {
-        console.log(`Error while fetching agreement :: ${error}`);
-        return res.status(500).json({
-            success: false,
-            message: "Server Error"
-        });
+      console.log(`Error while fetching agreement :: ${error}`);
+      return res.status(500).json({
+        success: false,
+        message: 'Server Error',
+      });
     }
-}
+};
+  
 
 export const updateAgreement = async (req, res) => {
     try {
